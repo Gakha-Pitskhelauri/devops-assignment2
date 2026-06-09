@@ -1,0 +1,12 @@
+groups:
+  - name: app_alerts
+    rules:
+      - alert: HighErrorRate
+        expr: increase(app_errors_total[1m]) > 5
+        for: 0m
+        labels:
+          severity: critical
+        annotations:
+          summary: "CRITICAL: High error rate detected"
+          description: "App has produced more than 5 errors in the last minute."
+

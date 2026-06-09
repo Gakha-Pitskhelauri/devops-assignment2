@@ -1,0 +1,60 @@
+services:
+
+  app:
+    build: ./app
+    container_name: observability-lab-app-1
+    ports:
+      - "5000:5000"
+    logging:
+      driver: json-file
+
+  prometheus:
+    image: prom/prometheus:v2.51.0
+    container_name: prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./prometheus/alert_rules.yml:/etc/prometheus/alert_rules.yml
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+
+  grafana:
+    image: grafana/grafana:10.4.2
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    volumes:
+      - grafana-data:/var/lib/grafana
+    depends_on:
+      - prometheus
+      - loki
+
+  loki:
+    image: grafana/loki:2.9.6
+    container_name: loki
+    user: "0"
+    ports:
+      - "3100:3100"
+    volumes:
+      - ./loki/loki-config.yml:/etc/loki/loki-config.yml
+      - loki-data:/loki
+    command: -config.file=/etc/loki/loki-config.yml
+
+  promtail:
+    image: grafana/promtail:3.3.2
+    container_name: promtail
+    user: "0"
+    volumes:
+      - ./promtail/promtail-config.yml:/etc/promtail/promtail-config.yml
+      - /var/run/docker.sock:/var/run/docker.sock
+    command: -config.file=/etc/promtail/promtail-config.yml
+    depends_on:
+      - loki
+      - app
+
+volumes:
+  grafana-data:
+  loki-data:
