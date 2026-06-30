@@ -1,4 +1,8 @@
 __pycache__/
 *.pyc
-.env
-.DS_Store
+*.pyo
+.venv/
+venv/
+.pytest_cache/
+*.log
+app-image.tar
