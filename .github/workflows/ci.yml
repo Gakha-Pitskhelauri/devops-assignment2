@@ -110,7 +110,18 @@ jobs:
           curl -fs "http://localhost:9090/api/v1/query?query=app_requests_total" | grep "flask-app"
 
       - name: Verify Loki is ready
-        run: curl -fs http://localhost:3100/ready
+        run: |
+          for i in {1..30}; do
+            if curl -fs http://localhost:3100/ready > /dev/null 2>&1; then
+              echo "Loki is ready"
+              exit 0
+            fi
+            echo "Waiting for Loki... ($i/30)"
+            sleep 2
+          done
+          echo "Loki did not become ready"
+          docker compose logs loki
+          exit 1
 
       - name: Tear down
         if: always()
