@@ -9,3 +9,4 @@ app-image.tar
 .current-version
 .previous-version
 logs/
+.env

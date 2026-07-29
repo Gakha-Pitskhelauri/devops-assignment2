@@ -10,3 +10,12 @@ groups:
           summary: "CRITICAL: High error rate detected"
           description: "App has produced more than 5 errors in the last minute."
 
+      - alert: ServiceDown
+        expr: up{job="flask-app"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "CRITICAL: Flask app is down"
+          description: "Prometheus has been unable to scrape the flask-app target for more than 1 minute."
+
