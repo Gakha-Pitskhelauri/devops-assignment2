@@ -1,0 +1,57 @@
+---
+- name: Observability Lab environment setup
+  hosts: local
+  gather_facts: false
+  vars:
+    project_dir: "{{ playbook_dir }}"
+
+  tasks:
+    - name: Verify Docker is installed
+      ansible.builtin.command: docker --version
+      register: docker_check
+      changed_when: false
+
+    - name: Print Docker version
+      ansible.builtin.debug:
+        msg: "Docker version: {{ docker_check.stdout }}"
+
+    - name: Verify Docker Compose is available
+      ansible.builtin.command: docker compose version
+      register: compose_check
+      changed_when: false
+
+    - name: Print Docker Compose version
+      ansible.builtin.debug:
+        msg: "Docker Compose version: {{ compose_check.stdout }}"
+
+    - name: Ensure logs directory exists
+      ansible.builtin.file:
+        path: "{{ project_dir }}/logs"
+        state: directory
+        mode: "0755"
+
+    - name: Build and start the observability stack
+      ansible.builtin.command: docker compose up -d --build
+      args:
+        chdir: "{{ project_dir }}"
+      register: compose_up
+      changed_when: "'Started' in compose_up.stdout or 'Started' in compose_up.stderr"
+
+    - name: Wait for Flask app to be healthy
+      ansible.builtin.uri:
+        url: "http://localhost:5000/health"
+        status_code: 200
+      register: health_result
+      retries: 30
+      delay: 2
+      until: health_result.status == 200
+
+    - name: Setup complete
+      ansible.builtin.debug:
+        msg:
+          - "Environment setup complete!"
+          - "Flask app  : http://localhost:5000"
+          - "Prometheus : http://localhost:9090"
+          - "Grafana    : http://localhost:3000 (admin/admin)"
+          - "Loki       : http://localhost:3100"
+

@@ -1,4 +1,12 @@
 __pycache__/
 *.pyc
+*.pyo
+.venv/
+venv/
+.pytest_cache/
+*.log
+app-image.tar
+.current-version
+.previous-version
+logs/
 .env
-.DS_Store
